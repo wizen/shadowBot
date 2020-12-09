@@ -26,15 +26,15 @@ print('MySQL Database [exuKeyDB] connected!')
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 
-client = discord.Client()
+bot = discord.Client()
 
-@client.event
+@bot.event
 async def on_ready():
-    print(f'{client.user} has connected to Discord!')
+    print(f'{bot.user} has connected to Discord!')
 
-@client.event
+@bot.event
 async def on_message(message):
-    if message.author==client.user: #ignore own messages
+    if message.author==bot.user: #ignore own messages
         return 
     if message.content.startswith(prefix)==False: 
         return
@@ -83,4 +83,4 @@ async def on_message(message):
         await message.channel.send("Don't Panic! I understand the following commands. !help (this message), !addKey <key>, and !getKey. Capitalization matters! Key requests are still not tracked. Donors are tracked for gratitude purposes.")
         
         
-client.run(TOKEN)
+bot.run(TOKEN)
