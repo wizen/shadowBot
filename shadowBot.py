@@ -36,15 +36,15 @@ async def on_ready():
 async def on_message(message):
     if message.author==bot.user: #ignore own messages
         return 
-    if message.content.startswith(prefix)==False: 
+    if message.content.startswith(prefix)==False: # ignore messages that do not have the prefix
         return
-    if isinstance(message.channel, discord.channel.DMChannel):
+    if isinstance(message.channel, discord.channel.DMChannel): # ignore direct messages
         return
-    argString=message.content.strip(prefix)
-    args=argString.split(' ')
+    argString=message.content.strip(prefix) # strip the prefix from the string. non-prefixed strings have been returned, so this is safe.
+    args=argString.split(' ') #put the string into an array delimited by a space
     
     
-    if args[0]=='addKey': # add a key to the database
+    if args[0]=='addkey': # add a key to the database
         if len(args)==1:
             await message.channel.send("Sorry, can't add a key with no key!")
             return
@@ -53,14 +53,25 @@ async def on_message(message):
             return
         keyToAdd=args[1]
         donor=message.author.name
-        
-        
-        await message.delete()
+                
         sql.execute('INSERT INTO mysteryKeys (name,gameKey) VALUES ("' + donor + '","' + keyToAdd + '");')
         mydb.commit()
+        
+        # Echo the key back at the donor, for verification purposes.
+        sql.execute('SELECT gameKey,name,id FROM mysteryKeys WHERE id = (SELECT MAX(id) FROM mysteryKeys) AND name = "'+ message.author.name +'";')
+        keyResult = sql.fetchall()
+        chan = await message.author.create_dm();
+        
+        if len(keyResult)==0:
+            await message.channel.send("Ruh roh. Your key wasn't written to the db. Message wizen, please.")
+            return
+        
+        await chan.send("Key read from the DB is " + keyResult[0][0] + ", DM wizen if this is not correct.")
+        
         await message.channel.send('Thank you for your generosity, ' + donor + '! The key has been recorded!')
+        await message.delete()
 
-    if args[0]=='getKey': 
+    if args[0]=='getkey': # get a key from the database
         if len(args)>1:
             await message.channel.send("getKey does not accept arguments!")
             return
@@ -80,7 +91,7 @@ async def on_message(message):
         await message.delete()
         
     if args[0]=='help': # help function
-        await message.channel.send("Don't Panic! I understand the following commands. !help (this message), !addKey <key>, and !getKey. Capitalization matters! Key requests are still not tracked. Donors are tracked for gratitude purposes.")
+        await message.channel.send("Don't Panic! I understand the following commands. !help (this message), !addkey <key>, and !getkey. Key requests are still not tracked. Donors are tracked for gratitude purposes.")
         
         
 bot.run(TOKEN)
